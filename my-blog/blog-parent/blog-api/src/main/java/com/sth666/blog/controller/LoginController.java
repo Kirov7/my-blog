@@ -4,10 +4,7 @@ import com.sth666.blog.service.LoginService;
 import com.sth666.blog.vo.Result;
 import com.sth666.blog.vo.params.LoginParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author ：枫阿雨
@@ -22,7 +19,7 @@ public class LoginController {
     @Autowired
     private LoginService loginService;
 
-    @PostMapping
+    @GetMapping
     public Result login(@RequestBody LoginParam loginParam){
         //登录 验证用户 访问用户表
         return loginService.login(loginParam);
