@@ -19,7 +19,7 @@ public class LoginController {
     @Autowired
     private LoginService loginService;
 
-    @GetMapping
+    @PostMapping
     public Result login(@RequestBody LoginParam loginParam){
         //登录 验证用户 访问用户表
         return loginService.login(loginParam);
