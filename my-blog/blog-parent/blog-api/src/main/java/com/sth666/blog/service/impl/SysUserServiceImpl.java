@@ -10,7 +10,9 @@ import com.sth666.blog.utils.JWTUtils;
 import com.sth666.blog.vo.ErrorCode;
 import com.sth666.blog.vo.LoginUserVo;
 import com.sth666.blog.vo.Result;
+import com.sth666.blog.vo.UserVo;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -28,6 +30,21 @@ public class SysUserServiceImpl implements SysUserService {
     @Lazy
     @Autowired
     private LoginService loginService;
+
+    @Override
+    public UserVo findUserVoById(Long id) {
+        SysUser sysUser = sysUserMapper.selectById(id);
+        if (sysUser == null){
+            sysUser = new SysUser();
+            sysUser.setId(1L);
+            sysUser.setAvatar("/static/img/logo.b3a48c0.png");
+            sysUser.setNickname("枫阿雨");
+        }
+        UserVo userVo = new UserVo();
+        BeanUtils.copyProperties(sysUser, userVo);
+
+        return userVo;
+    }
 
     @Override
     public SysUser findUserById(Long id) {

@@ -59,7 +59,7 @@ public class LoginServiceImpl implements LoginService {
             return Result.fail(ErrorCode.ACCOUNT_PWD_NOT_EXIST.getCode(), ErrorCode.ACCOUNT_PWD_NOT_EXIST.getMsg());
         }
         String token = JWTUtils.createToken(sysUser.getId());
-        redisTemplate.opsForValue().set("TOKEN" + token, JSON.toJSONString(sysUser), 1, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set("TOKEN_" + token, JSON.toJSONString(sysUser), 1, TimeUnit.DAYS);
         return Result.success(token);
     }
 
@@ -72,7 +72,7 @@ public class LoginServiceImpl implements LoginService {
         if (stringObjectMap == null) {
             return null;
         }
-        String userJson = redisTemplate.opsForValue().get("TOKEN" + token);
+        String userJson = redisTemplate.opsForValue().get("TOKEN_" + token);
         if (StringUtils.isBlank(userJson)) {
             return null;
         }
@@ -82,7 +82,7 @@ public class LoginServiceImpl implements LoginService {
 
     @Override
     public Result logout(String token) {
-        redisTemplate.delete("TOKEN" + token);
+        redisTemplate.delete("TOKEN_" + token);
         return Result.success(null);
     }
 
@@ -127,7 +127,7 @@ public class LoginServiceImpl implements LoginService {
         //token
         String token = JWTUtils.createToken(sysUser.getId());
 
-        redisTemplate.opsForValue().set("TOKEN" + token, JSON.toJSONString(sysUser), 1, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set("TOKEN_" + token, JSON.toJSONString(sysUser), 1, TimeUnit.DAYS);
         return Result.success(token);
     }
 }

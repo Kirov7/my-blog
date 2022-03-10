@@ -5,15 +5,18 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sth666.blog.dao.dos.Archives;
 import com.sth666.blog.dao.mapper.ArticleBodyMapper;
 import com.sth666.blog.dao.mapper.ArticleMapper;
+import com.sth666.blog.dao.mapper.ArticleTagMapper;
 import com.sth666.blog.dao.pojo.Article;
 import com.sth666.blog.dao.pojo.ArticleBody;
-import com.sth666.blog.service.ArticleService;
-import com.sth666.blog.service.CategoryService;
-import com.sth666.blog.service.SysUserService;
-import com.sth666.blog.service.TagService;
+import com.sth666.blog.dao.pojo.ArticleTag;
+import com.sth666.blog.dao.pojo.SysUser;
+import com.sth666.blog.service.*;
+import com.sth666.blog.utils.UserThreadLocal;
 import com.sth666.blog.vo.ArticleBodyVo;
 import com.sth666.blog.vo.ArticleVo;
 import com.sth666.blog.vo.Result;
+import com.sth666.blog.vo.TagVo;
+import com.sth666.blog.vo.params.ArticleParam;
 import com.sth666.blog.vo.params.PageParams;
 import org.apache.ibatis.annotations.Mapper;
 import org.joda.time.DateTime;
@@ -23,7 +26,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author ：枫阿雨
@@ -48,6 +53,12 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private ThreadService threadService;
+
+    @Autowired
+    private ArticleTagMapper articleTagMapper;
 
     @Override
     public Result listArticle(PageParams pageParams) {
@@ -104,8 +115,59 @@ public class ArticleServiceImpl implements ArticleService {
          */
         Article article = this.articleMapper.selectById(articleId);
         ArticleVo articleVo = copy(article, true, true, true ,true);
-
+        //查看完文章了,新增阅读数,有没有问题呢?
+        //查看完文章后,本应该直接返回数据了,这时做了一个更新操作,更新时加写锁,阻塞其他的读操作,性能就会比较低
+        // 更新增加了此次接口的耗时, 如果一旦更新出问题,不能影响查看文章的操作
+        //线程池 可以把更新操作 扔到线程池中去执行, 和主线程就不相关了
+        threadService.updateArticleViewCount(articleMapper, article);
         return Result.success(articleVo);
+    }
+
+    @Override
+    public Result publish(ArticleParam articleParam) {
+        //此接口要加入到登录拦截当中
+        SysUser sysUser = UserThreadLocal.get();
+        /**
+         * 1. 发布文章 目的是构建我们的article对象
+         * 2. 作者id 当前的登录用户
+         * 3. 标签 要将标签加入到我们的关联列表当中
+         * 4. body 内容存储 article bodyId
+         */
+        Article article = new Article();
+        article.setAuthorId(sysUser.getId());
+        article.setWeight(Article.Article_Common);
+        article.setViewCounts(0);
+        article.setTitle(articleParam.getTitle());
+        article.setSummary(articleParam.getSummary());
+        article.setCommentCounts(0);
+        article.setCreateDate(System.currentTimeMillis());
+        article.setCategoryId(articleParam.getCategory().getId());
+        //插入之后 会生成一个文章id
+        this.articleMapper.insert(article);
+        //tag
+        List<TagVo> tags = articleParam.getTags();
+        if (tags != null){
+            for (TagVo tag : tags) {
+                Long articleId = article.getId();
+                ArticleTag articleTag = new ArticleTag();
+                articleTag.setTagId(tag.getId());
+                articleTag.setArticleId(articleId);
+                articleTagMapper.insert(articleTag);
+            }
+        }
+        //body
+        ArticleBody articleBody = new ArticleBody();
+        articleBody.setArticleId(article.getId());
+        articleBody.setContent(articleParam.getBody().getContent());
+        articleBody.setContentHtml(articleParam.getBody().getContentHtml());
+        articleBodyMapper.insert(articleBody);
+        //插入之后才会有ID
+        article.setBodyId(articleBody.getArticleId());
+        articleMapper.updateById(article);
+        //也可以使用map来避免long的精度缺失
+        Map<String, String> map = new HashMap<>();
+        map.put("id", article.getId().toString());
+        return Result.success(map);
     }
 
     private List<ArticleVo> copyList(List<Article> records, boolean isTag, boolean isAuthor) {

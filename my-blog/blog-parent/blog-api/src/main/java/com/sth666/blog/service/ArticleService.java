@@ -1,6 +1,7 @@
 package com.sth666.blog.service;
 
 import com.sth666.blog.vo.Result;
+import com.sth666.blog.vo.params.ArticleParam;
 import com.sth666.blog.vo.params.PageParams;
 
 public interface ArticleService {
@@ -37,4 +38,11 @@ public interface ArticleService {
      * @return
      */
     Result findArticleById(Long articleId);
+
+    /**
+     * 文章发布服务
+     * @param articleParam
+     * @return
+     */
+    Result publish(ArticleParam articleParam);
 }

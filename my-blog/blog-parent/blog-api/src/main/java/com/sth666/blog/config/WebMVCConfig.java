@@ -7,6 +7,9 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 /**
  * @author ：枫阿雨
  * @description：TODO
@@ -28,7 +31,10 @@ public class WebMVCConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         //拦截test接口,后续实际需要拦截的接口时再配置真正的拦截接口
-        registry.addInterceptor(loginInterceptor).addPathPatterns("/test");
+        registry.addInterceptor(loginInterceptor)
+                .addPathPatterns("/test")
+                .addPathPatterns("/articles/publish")
+                .addPathPatterns("/comments/create/change");
 
     }
 }

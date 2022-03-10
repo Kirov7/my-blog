@@ -1,5 +1,7 @@
 package com.sth666.blog.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.sth666.blog.dao.mapper.TagMapper;
 import com.sth666.blog.dao.pojo.Tag;
 import com.sth666.blog.service.TagService;
@@ -11,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -59,5 +60,11 @@ public class TagServiceImpl implements TagService {
         //slect * from tag where id in (1,2,3,4)
         List<Tag> tagList = tagMapper.findTagsByTagIds(tagIds);
         return Result.success(tagList);
+    }
+
+    @Override
+    public Result findAll() {
+        List<Tag> tags = this.tagMapper.selectList(new LambdaQueryWrapper<>());
+        return Result.success(copyList(tags));
     }
 }
