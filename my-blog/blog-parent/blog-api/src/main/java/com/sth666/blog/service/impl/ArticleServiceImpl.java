@@ -23,6 +23,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -124,6 +125,7 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @Transactional
     public Result publish(ArticleParam articleParam) {
         //此接口要加入到登录拦截当中
         SysUser sysUser = UserThreadLocal.get();
@@ -162,12 +164,11 @@ public class ArticleServiceImpl implements ArticleService {
         articleBody.setContentHtml(articleParam.getBody().getContentHtml());
         articleBodyMapper.insert(articleBody);
         //插入之后才会有ID
-        article.setBodyId(articleBody.getArticleId());
+        article.setBodyId(articleBody.getId());
         articleMapper.updateById(article);
-        //也可以使用map来避免long的精度缺失
-        Map<String, String> map = new HashMap<>();
-        map.put("id", article.getId().toString());
-        return Result.success(map);
+        ArticleVo articleVo = new ArticleVo();
+        articleVo.setId(article.getId());
+        return Result.success(articleVo);
     }
 
     private List<ArticleVo> copyList(List<Article> records, boolean isTag, boolean isAuthor) {
