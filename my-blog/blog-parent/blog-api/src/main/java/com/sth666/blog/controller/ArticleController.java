@@ -1,5 +1,6 @@
 package com.sth666.blog.controller;
 
+import com.sth666.blog.common.aop.LogAnnotation;
 import com.sth666.blog.service.ArticleService;
 import com.sth666.blog.vo.Result;
 import com.sth666.blog.vo.params.ArticleParam;
@@ -28,6 +29,8 @@ public class ArticleController {
      * @return
      */
     @PostMapping
+    //加上此注解代表要对此接口记录日志
+    @LogAnnotation(module = "文章", operator = "获取文章列表")
     public Result listArticle(@RequestBody PageParams pageParams){
         return articleService.listArticle(pageParams);
     }
