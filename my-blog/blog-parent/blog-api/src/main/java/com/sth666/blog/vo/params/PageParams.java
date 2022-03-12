@@ -14,4 +14,8 @@ public class PageParams {
     private int page = 1;
     //每页显示的数量
     private int pageSize = 10;
+
+    private Long categoryId;
+
+    private Long tagId;
 }

@@ -68,6 +68,26 @@ public class ArticleServiceImpl implements ArticleService {
          */
         Page<Article> page = new Page<>(pageParams.getPage(), pageParams.getPageSize());
         LambdaQueryWrapper<Article> queryWrapper = new LambdaQueryWrapper<>();
+        if (pageParams.getCategoryId() != null){
+            //相当于加上了 and category_id=#{categoryId}
+            queryWrapper.eq(Article::getCategoryId, pageParams.getCategoryId());
+        }
+        List<Long> articleIdList = new ArrayList<>();
+        if (pageParams.getTagId() != null){
+            //加入标签 条件查询
+            //article文章表中 并没有tag字段 一篇文章有多个标签
+            //article_tag article_id 1 : n tag_id
+            LambdaQueryWrapper<ArticleTag> articleTagLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            articleTagLambdaQueryWrapper.eq(ArticleTag::getTagId, pageParams.getTagId());
+            List<ArticleTag> articleTags = articleTagMapper.selectList(articleTagLambdaQueryWrapper);
+            for (ArticleTag articleTag : articleTags) {
+                articleIdList.add(articleTag.getArticleId());
+            }
+            if (articleIdList.size() > 0){
+                //相当于加了 and id in(1,2,3)
+                queryWrapper.in(Article::getId, articleIdList);
+            }
+        }
         //order by create_data desc
         //先按照置顶进行排序,再按照创建日期进行排序
         queryWrapper.orderByDesc(Article::getWeight, Article::getCreateDate);
