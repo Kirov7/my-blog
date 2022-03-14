@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -70,6 +71,8 @@ public class ArticleServiceImpl implements ArticleService {
                 pageParams.getTagId(),
                 pageParams.getYear(),
                 pageParams.getMonth());
+
+
         return Result.success(copyList(articleIPage.getRecords(),true,true));
     }
 
@@ -175,7 +178,7 @@ public class ArticleServiceImpl implements ArticleService {
         article.setSummary(articleParam.getSummary());
         article.setCommentCounts(0);
         article.setCreateDate(System.currentTimeMillis());
-        article.setCategoryId(articleParam.getCategory().getId());
+        article.setCategoryId(Long.parseLong(articleParam.getCategory().getId()));
         //插入之后 会生成一个文章id
         this.articleMapper.insert(article);
         //tag
@@ -184,7 +187,7 @@ public class ArticleServiceImpl implements ArticleService {
             for (TagVo tag : tags) {
                 Long articleId = article.getId();
                 ArticleTag articleTag = new ArticleTag();
-                articleTag.setTagId(tag.getId());
+                articleTag.setTagId(Long.parseLong(tag.getId()));
                 articleTag.setArticleId(articleId);
                 articleTagMapper.insert(articleTag);
             }
@@ -199,7 +202,7 @@ public class ArticleServiceImpl implements ArticleService {
         article.setBodyId(articleBody.getId());
         articleMapper.updateById(article);
         ArticleVo articleVo = new ArticleVo();
-        articleVo.setId(article.getId());
+        articleVo.setId(article.getId().toString());
         return Result.success(articleVo);
     }
 
@@ -227,6 +230,7 @@ public class ArticleServiceImpl implements ArticleService {
                            boolean isAuthor, boolean isBody,
                            boolean isCategory) {
         ArticleVo articleVo = new ArticleVo();
+        articleVo.setId(String.valueOf(article.getId()));
         BeanUtils.copyProperties(article, articleVo);
 
         articleVo.setCreateDate(new DateTime(article.getCreateDate()).toString("yyyy-MM-dd"));
